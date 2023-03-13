@@ -2,6 +2,7 @@ const { nanoid } = require("nanoid");
 const { Pool } = require("pg");
 const InvariantError = require("../../exceptions/InvariantError");
 const NotFoundError = require("../../exceptions/NotFoundError");
+const { mapDBToSongModel } = require("../../utils");
 
 class AlbumsService {
     constructor() {
@@ -37,6 +38,15 @@ class AlbumsService {
         }
 
         return result.rows[0];
+    }
+
+    async getSongsInAlbumDetail(id) {
+        const query = {
+          text: 'SELECT id, title, performer FROM songs WHERE "album_id" = $1',
+          values: [id],
+        };
+        const result = await this._pool.query(query);
+        return result.rows.map(mapDBToSongModel);
     }
 
     async editAlbumById(id, { name, year }) {
