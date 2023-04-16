@@ -1,24 +1,25 @@
 /* eslint-disable camelcase */
 
 exports.up = (pgm) => {
-  // create albums table
-  pgm.createTable('albums', {
+  // create playlists table
+  pgm.createTable('playlists', {
     id: {
       type: 'VARCHAR(50)',
       primaryKey: true,
+      notNull: true,
     },
     name: {
       type: 'TEXT',
       notNull: true,
     },
-    year: {
-      type: 'INT',
+    owner: {
+      type: 'VARCHAR(50)',
       notNull: true,
     },
   });
 };
 
 exports.down = (pgm) => {
-  // drop albums table
-  pgm.dropTable('albums');
+  // drop playlists table
+  pgm.dropTable('playlists');
 };

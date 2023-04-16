@@ -1,7 +1,3 @@
-/*const {
-  postSongHandler, getSongsHandler, getSongByIdHandler, putSongByIdHandler, deleteSongByIdHandler,
-} = require('./handler');*/
-
 const routes = (handler) => [
   {
     method: 'POST',

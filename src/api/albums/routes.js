@@ -1,7 +1,3 @@
-/*const {
-    postAlbumByIdHandler, getAlbumByIdHandler, putAlbumByIdHandler, deleteAlbumByIdHandler,
-  } = require('./handler');*/
-
 const routes = (handler) => [
   {
     method: 'POST',
