@@ -2,35 +2,60 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
+const config = require('./utils/config');
 
 const ClientError = require('./exceptions/ClientError');
 
+// albums
 const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService');
 const AlbumsValidator = require('./validator/albums');
+const AlbumLikesService = require('./services/postgres/AlbumLikesService');
+const UploadsValidator = require('./validator/uploads');
 
+// storage
+const StorageService = require('./services/storage/StorageService');
+
+// cache
+const CacheService = require('./services/redis/CacheService');
+
+// export
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
+// songs
 const songs = require('./api/songs');
 const SongsService = require('./services/postgres/SongsService');
 const SongsValidator = require('./validator/songs');
 
+// users
 const users = require('./api/users');
 const UsersService = require('./services/postgres/UsersService');
 const UsersValidator = require('./validator/users');
 
+// authentications
 const authentications = require('./api/authentications');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 
+// playlists
 const playlists = require('./api/playlists');
 const PlaylistsService = require('./services/postgres/PlaylistsService');
 const PlaylistsValidator = require('./validator/playlists');
 
+// collaborations
 const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// playlist song
 const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
+
+// activities
 const ActivitiesService = require('./services/postgres/ActivitiesService');
 
 const init = async () => {
@@ -44,10 +69,15 @@ const init = async () => {
   const playlistSongsService = new PlaylistSongsService(
     activitiesService, usersService, collaborationsService,
   );
+  const cacheService = new CacheService();
+  const albumLikesService = new AlbumLikesService(cacheService);
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'api/albums/file/images'),
+  );
 
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -58,6 +88,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -82,7 +115,10 @@ const init = async () => {
       plugin: albums,
       options: {
         service: albumsService,
+        albumLikesService,
+        storageService,
         validator: AlbumsValidator,
+        uploadsValidator: UploadsValidator,
       },
     },
     {
@@ -122,7 +158,16 @@ const init = async () => {
       options: {
         playlistsService,
         playlistSongsService,
+        songsService,
         validator: PlaylistsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        producerService: ProducerService,
+        playlistsService,
+        validator: ExportsValidator,
       },
     },
   ]);

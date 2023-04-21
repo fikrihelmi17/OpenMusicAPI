@@ -55,18 +55,16 @@ class PlaylistsService {
                        ORDER BY playlists.id`,
         values: [owner],
       };
-
       const result = await this._pool.query(query);
       return result.rows;
     } catch (error) {
       const query = {
         text: `SELECT playlists.id, playlists.name, users.username
-                       FROM playlists
-                       LEFT JOIN users ON users.id = playlists.owner
-                       WHERE users.id = $1`,
+                         FROM playlists
+                         LEFT JOIN users ON users.id = playlists.owner
+                         WHERE users.id = $1`,
         values: [owner],
       };
-
       const result = await this._pool.query(query);
       return result.rows;
     }
@@ -82,7 +80,7 @@ class PlaylistsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
 
@@ -119,6 +117,18 @@ class PlaylistsService {
     }
 
     return result.rows;
+  }
+
+  async verifyPlaylistId(playlistId) {
+    const query = {
+      text: 'SELECT id FROM playlists WHERE id = $1',
+      values: [playlistId],
+    };
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist tidak ditemukan');
+    }
   }
 }
 

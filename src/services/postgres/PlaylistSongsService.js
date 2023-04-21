@@ -11,28 +11,6 @@ class PlaylistSongsService {
     this._collaborationsService = collaborationsService;
   }
 
-  async verifyPlaylistIdAndSongId(playlistId, songId) {
-    const query = {
-      text: 'SELECT id FROM playlists WHERE id = $1',
-      values: [playlistId],
-    };
-    const result = await this._pool.query(query);
-
-    if (!result.rows.length) {
-      throw new NotFoundError('Playlist tidak ditemukan');
-    }
-
-    const query1 = {
-      text: 'SELECT id FROM songs WHERE id = $1',
-      values: [songId],
-    };
-    const result1 = await this._pool.query(query1);
-
-    if (!result1.rows.length) {
-      throw new NotFoundError('Song tidak ditemukan');
-    }
-  }
-
   async addSongOnPlaylist(playlistId, songId, userId) {
     const id = `plsongs-${nanoid(16)}`;
 
@@ -53,9 +31,9 @@ class PlaylistSongsService {
   async getSongsOnPlaylist(playlistId) {
     const query = {
       text: `SELECT songs.id, songs.title, songs.performer
-                   FROM songs
-                   INNER JOIN playlist_songs ON songs.id = playlist_songs.song_id
-                   WHERE playlist_songs.playlist_id = $1`,
+                     FROM songs
+                     INNER JOIN playlist_songs ON songs.id = playlist_songs.song_id
+                     WHERE playlist_songs.playlist_id = $1`,
       values: [playlistId],
     };
 
@@ -99,6 +77,7 @@ class PlaylistSongsService {
         }
       });
     }
+
     return data;
   }
 }
